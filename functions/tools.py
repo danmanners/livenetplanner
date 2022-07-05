@@ -6,17 +6,20 @@ from os import path
 
 from values import defaultVlanSubnets, coreVlans, adminVlans, idfThirdOctet
 
+
 # Generate the Subnet Calc
-
-
 def genSubnet(rack, vlan, core=False, thirdOctet=None):
     if thirdOctet is not None:
-        return str(
+        ipaddr = str(
             ipaddress.ip_network(
                 f'10.{rack}.{thirdOctet}.0/{adminVlans[str(vlan)]["subnet"]}',
                 False
             )
         )
+        global idfThirdOctet
+        idfThirdOctet += 8
+        return ipaddr
+
     elif str(vlan) in list(adminVlans.keys()):
         return str(
             ipaddress.ip_network(
@@ -82,8 +85,6 @@ def generateConfig(args, coreVlans, idfThirdOctet):
                 thirdOctet=idfThirdOctet
             )
         ]
-        # Increment the Third Octet CIDR Counter
-        idfThirdOctet+=8
         # Write the row
         writer.writerow(row)
         # Loop thorugh the rest of the VLANs
