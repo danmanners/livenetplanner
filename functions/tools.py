@@ -7,6 +7,13 @@ from os import path
 from values import defaultVlanSubnets, coreVlans, adminVlans, idfThirdOctet
 
 
+# Globally Define the idfThirdOctet Variable
+def incrementThirdOctet():
+    global idfThirdOctet
+    idfThirdOctet += 8
+    return idfThirdOctet
+
+
 # Generate the Subnet Calc
 def genSubnet(rack, vlan, core=False, thirdOctet=None):
     if thirdOctet is not None:
@@ -16,8 +23,7 @@ def genSubnet(rack, vlan, core=False, thirdOctet=None):
                 False
             )
         )
-        global idfThirdOctet
-        idfThirdOctet += 8
+        incrementThirdOctet()
         return ipaddr
 
     elif str(vlan) in list(adminVlans.keys()):
@@ -48,7 +54,7 @@ def genSubnet(rack, vlan, core=False, thirdOctet=None):
 
 
 # Generate and write the config file
-def generateConfig(args, coreVlans, idfThirdOctet):
+def generateConfig(args, coreVlans, thirdOctet):
     f = open(f'rack-{args.rackId}.csv', 'w')
     writer = csv.writer(f)
     header = ['Rack ID', 'VLAN ID', 'CIDR']
@@ -85,6 +91,7 @@ def generateConfig(args, coreVlans, idfThirdOctet):
                 thirdOctet=idfThirdOctet
             )
         ]
+
         # Write the row
         writer.writerow(row)
         # Loop thorugh the rest of the VLANs
@@ -109,7 +116,7 @@ def checkFileStatus(args):
         confirm = input(
             f"The file 'rack-{args.rackId}.csv' already exists. Do you wish to overwrite it? ")
         if confirm.casefold() in ['y', 'yes']:
-            generateConfig(args, coreVlans, idfThirdOctet)
+            generateConfig(args, coreVlans, thirdOctet=idfThirdOctet)
         else:
             print('Not continuing at this time.')
             sys.exit(0)
