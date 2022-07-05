@@ -27,12 +27,17 @@ def genSubnet(rack, vlan, core=False, thirdOctet=None):
         return ipaddr
 
     elif str(vlan) in list(adminVlans.keys()):
-        return str(
+        ipaddr = str(
             ipaddress.ip_network(
                 f'10.{rack}.{adminVlans[str(vlan)]["cidrBlock"]}.0/{adminVlans[str(vlan)]["subnet"]}',
                 False
             )
         )
+        adminVlans[str(vlan)].update({
+            "cidrBlock": str(int(adminVlans[str(vlan)]['cidrBlock']) + 8)
+        })
+        return ipaddr
+
     elif vlan in list(defaultVlanSubnets.keys()):
         return str(
             ipaddress.ip_network(
@@ -120,3 +125,5 @@ def checkFileStatus(args):
         else:
             print('Not continuing at this time.')
             sys.exit(0)
+    else:
+        generateConfig(args, coreVlans, thirdOctet=idfThirdOctet)

@@ -10,11 +10,11 @@ adminVlans = {
     },
     "2": {
         "cidrBlock": "8",
-        "subnet": "21",
+        "subnet": "22",
     },
     "3": {
         "cidrBlock": "12",
-        "subnet": "21"
+        "subnet": "22"
     },
     "101": {
         "cidrBlock": "0",

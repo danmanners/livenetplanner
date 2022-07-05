@@ -39,10 +39,6 @@ args = parser.parse_args()
 # If the main program
 if __name__ == "__main__":
     try:
-        # ONLY if Debug is set to TRUE
-        if args.debug is True:
-            for arg in vars(args):
-                print(f"{arg}: {getattr(args, arg)} - {type(getattr(args, arg))}")
         checkFileStatus(args)
     except (KeyboardInterrupt):
         print("\nKeyboard Interrupt detected! Closing program.")
