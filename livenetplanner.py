@@ -1,10 +1,6 @@
 import argparse
-import csv
 import sys
-from os import path
-import ipaddress
-from tokenize import Number
-from wsgiref import validate
+from functions.tools import checkFileStatus
 
 parser = argparse.ArgumentParser(
     description="Sets up your homelab environment with Bolt"
@@ -30,55 +26,24 @@ parser.add_argument(
     help="Defines the number of VLANs to generate per router."
 )
 
-# Parses all of your args.
+# Determines if Debug is enabled or not
+parser.add_argument(
+    "--debug", default=False,
+    action="store_true", help="Enables Debug"
+)
+
+# Parse all of the arguments.
 args = parser.parse_args()
 
-# Generate the list of Default VLANs
-# 101, 103 to 108, and 110 to 120
-defaultVlans = [101, *range(103, 109), *range(110, 120)]
 
-# Run through the codebase
-
-
-def generateConfig():
-    f = open(f'rack-{args.rackId}.csv', 'w')
-    writer = csv.writer(f)
-    header = ['Rack ID', 'VLAN ID', 'CIDR']
-
-    # Write the header
-    writer.writerow(header)
-
-    # Loop through each IDF
-    for idfIndex in range(1, args.idfCount+1, 1):
-        if args.vlanCount == 0:
-            for vlan in defaultVlans:
-                row = [idfIndex, vlan, ]
-                writer.writerow(row)
-        elif args.vlanCount >= 1:
-            extraVlans = [*range(121, args.vlanCount+121, 1)]
-            vlans = [*defaultVlans, *extraVlans]
-            for vlan in vlans:
-                row = [idfIndex, vlan]
-                writer.writerow(row)
-    f.close()
-
-
-def checkFileStatus():
+# If the main program
+if __name__ == "__main__":
     try:
-        # Open the new CSV file
-        if path.exists(f'rack-{args.rackId}.csv') is True:
-            confirm = input(
-                f"The file 'rack-{args.rackId}.csv' already exists. Do you wish to overwrite it? ")
-            if confirm.casefold() in ['y', 'n', 'yes', 'no']:
-                generateConfig()
-            else:
-                print('Not continuing at this time.')
-                sys.exit(0)
-
-    except (KeyboardInterrupt, SystemExit):
+        # ONLY if Debug is set to TRUE
+        if args.debug is True:
+            for arg in vars(args):
+                print(f"{arg}: {getattr(args, arg)} - {type(getattr(args, arg))}")
+        checkFileStatus(args)
+    except (KeyboardInterrupt):
         print("\nKeyboard Interrupt detected! Closing program.")
         sys.exit(1)
-
-
-if __name__ == "__main__":
-    checkFileStatus()
