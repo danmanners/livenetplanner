@@ -41,7 +41,7 @@ def genSubnet(rack, vlan, core=False, thirdOctet=None):
     elif vlan in list(defaultVlanSubnets.keys()):
         return str(
             ipaddress.ip_network(
-                f'10.{vlan}.0.0/{list(int(i) for i in defaultVlanSubnets.keys())[vlan]}',
+                f'10.{vlan}.0.0/{defaultVlanSubnets[str(vlan)]}',
                 False
             )
         )

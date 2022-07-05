@@ -1,3 +1,6 @@
+# Developer Settings
+.vscode/
+
 # Python Files
 .env/
 .py[cod]
