@@ -6,7 +6,7 @@ coreVlans = [*range(1, 4)]
 adminVlans = {
     "1": {
         "cidrBlock": "0",
-        "subnet": "20"
+        "subnet": "21"
     },
     "2": {
         "cidrBlock": "8",

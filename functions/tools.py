@@ -7,6 +7,12 @@ from os import path
 from values import defaultVlanSubnets, coreVlans, adminVlans, idfThirdOctet
 
 
+# Calculate the number of usable IP Addresses in the Subnet
+def calculateUsableAddresses(subnet):
+    subnetMask = str(subnet).split('/')[1]
+    return int(2**(32-int(subnetMask))) - 3 # High and Low Multicast and Gateway
+
+
 # Globally Define the idfThirdOctet Variable
 def incrementThirdOctet():
     global idfThirdOctet
@@ -62,7 +68,7 @@ def genSubnet(rack, vlan, core=False, thirdOctet=None):
 def generateConfig(args, coreVlans, thirdOctet):
     f = open(f'rack-{args.rackId}.csv', 'w')
     writer = csv.writer(f)
-    header = ['Rack ID', 'VLAN ID', 'CIDR']
+    header = ['Rack ID', 'VLAN ID', 'CIDR', 'USABLE IPs']
 
     # Write the header
     writer.writerow(header)
@@ -73,28 +79,27 @@ def generateConfig(args, coreVlans, thirdOctet):
             int(i) for i in defaultVlanSubnets.keys()
         )])
         for vlan in vlans:
-            row = ['core', vlan, genSubnet(args.rackId, vlan, True)]
+            subnet = genSubnet(args.rackId, vlan, True)
+            row = ['core', vlan, subnet, calculateUsableAddresses(subnet)]
             writer.writerow(row)
     elif args.vlanCount >= 1:
         extraVlans = sorted([*range(121, args.vlanCount+121, 1)])
         vlans = sorted(
             [*coreVlans, *list(int(i) for i in defaultVlanSubnets.keys()), *extraVlans])
         for vlan in vlans:
-            row = ['core', vlan, genSubnet(args.rackId, vlan, True)]
+            subnet = genSubnet(args.rackId, vlan, True)
+            row = ['core', vlan, subnet, calculateUsableAddresses(subnet)]
             writer.writerow(row)
 
     # Loop through each IDF
     for idfIndex in range(1, args.idfCount+1, 1):
         # Create the management VLAN
+        subnet = genSubnet(rack=args.rackId, vlan='101', core=True, thirdOctet=idfThirdOctet)
         row = [
             f'IDF-{idfIndex}',
             '101',
-            genSubnet(
-                rack=args.rackId,
-                vlan='101',
-                core=True,
-                thirdOctet=idfThirdOctet
-            )
+            subnet,
+            calculateUsableAddresses(subnet)
         ]
 
         # Write the row
@@ -102,14 +107,16 @@ def generateConfig(args, coreVlans, thirdOctet):
         # Loop thorugh the rest of the VLANs
         if args.vlanCount == 0:
             for vlan in list(defaultVlanSubnets.keys()):
-                row = [f'IDF-{idfIndex}', vlan, genSubnet(idfIndex, vlan)]
+                subnet = genSubnet(idfIndex, vlan)
+                row = [f'IDF-{idfIndex}', vlan, subnet, calculateUsableAddresses(subnet)]
                 writer.writerow(row)
         elif args.vlanCount >= 1:
             extraVlans = sorted([*range(121, args.vlanCount+121, 1)])
             vlans = sorted([*list(int(i)
                                   for i in defaultVlanSubnets.keys()), *extraVlans])
             for vlan in vlans:
-                row = [f'IDF-{idfIndex}', vlan, genSubnet(idfIndex, vlan)]
+                subnet = genSubnet(idfIndex, vlan)
+                row = [f'IDF-{idfIndex}', vlan, subnet, calculateUsableAddresses(subnet)]
                 writer.writerow(row)
     f.close()
 
